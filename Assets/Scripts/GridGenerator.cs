@@ -8,28 +8,37 @@ public class GridGenerator : MonoBehaviour
 {
     public int xSize, ySize;
     private Vector3[] vertices;
+    private Vector2[] uvs;
+    private Vector4[] tangents;
     private int[] triangles;
     private Mesh mesh;
 
     void Awake()
     {
-        StartCoroutine(Generate());
+        Generate();
     }
 
-    private IEnumerator Generate()
+    private void Generate()
     {
         GetComponent<MeshFilter>().mesh = mesh = new Mesh();
         mesh.name = "Procedural Grid";
 
         vertices = new Vector3[(xSize + 1) * (ySize + 1)];
-        for (int i = 0, y = 0; y < ySize; y++)
+        uvs = new Vector2[vertices.Length];
+        tangents = new Vector4[vertices.Length];
+        Vector4 tangent = new Vector4(1f, 0f, 0f, -1f);
+        for (int i = 0, y = 0; y <= ySize; y++)
         {
-            for (int x = 0; x < xSize; x++, i++)
+            for (int x = 0; x <= xSize; x++, i++)
             {
                 vertices[i] = new Vector3(x, y);
-                yield return new WaitForSeconds(0.05f);
+                uvs[i] = new Vector2((float)x / xSize, (float)y / ySize);
+                tangents[i] = tangent;
             }
         }
+        mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.tangents = tangents;
 
         int[] triangles = new int[xSize * ySize * 6];
         for (int ti = 0, vi = 0, y = 0; y < ySize; y++, vi++)
@@ -42,18 +51,18 @@ public class GridGenerator : MonoBehaviour
                 triangles[ti + 5] = vi + xSize + 2;
             }
         }
-
-        mesh.vertices = vertices;
         mesh.triangles = triangles;
+
+        mesh.RecalculateNormals();
     }
 
-    private void OnDrawGizmos()
-    {
-        if (vertices == null) return;
-        Gizmos.color = Color.black;
-        foreach (Vector3 vertex in vertices)
-        {
-            Gizmos.DrawSphere(vertex, 0.1f);
-        }
-    }
+    // private void OnDrawGizmos()
+    // {
+    //     if (vertices == null) return;
+    //     Gizmos.color = Color.black;
+    //     foreach (Vector3 vertex in vertices)
+    //     {
+    //         Gizmos.DrawSphere(vertex, 0.1f);
+    //     }
+    // }
 }
