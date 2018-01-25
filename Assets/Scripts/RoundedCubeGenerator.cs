@@ -6,7 +6,9 @@ using UnityEngine;
 public class RoundedCubeGenerator : MonoBehaviour
 {
     public int xSize, ySize, zSize;
+    public int roundness;
     private Vector3[] vertices;
+    private Vector3[] normals;
     // private Vector2[] uvs;
     // private Vector4[] tangents;
     // private int[] triangles;
@@ -32,42 +34,51 @@ public class RoundedCubeGenerator : MonoBehaviour
         int edgeVertices = (xSize + ySize + zSize - 3) * 4;
         int faceVertices = ((xSize - 1) * (ySize - 1) + (ySize - 1) * (zSize - 1) + (zSize - 1) * (xSize - 1)) * 2;
         vertices = new Vector3[cornerVertices + edgeVertices + faceVertices];
+        normals = new Vector3[vertices.Length];
         int v = 0;
         for (int y = 0; y <= ySize; y++)
         {
             for (int x = 0; x <= xSize; x++)
             {
-                vertices[v++] = new Vector3(x, y, 0);
+                SetVertex(v++, x, y, 0);
             }
             for (int z = 1; z <= zSize; z++)
             {
-                vertices[v++] = new Vector3(xSize, y, z);
+                SetVertex(v++, xSize, y, z);
             }
             for (int x = xSize - 1; x >= 0; x--)
             {
-                vertices[v++] = new Vector3(x, y, zSize);
+                SetVertex(v++, x, y, zSize);
             }
             for (int z = zSize - 1; z > 0; z--)
             {
-                vertices[v++] = new Vector3(0, y, z);
+                SetVertex(v++, 0, y, z);
             }
         }
         for (int z = 1; z < zSize; z++)
         {
             for (int x = 1; x < xSize; x++)
             {
-                vertices[v++] = new Vector3(x, ySize, z);
+                SetVertex(v++, x, ySize, z);
             }
         }
         for (int z = 1; z < zSize; z++)
         {
             for (int x = 1; x < xSize; x++)
             {
-                vertices[v++] = new Vector3(x, 0, z);
+                SetVertex(v++, x, 0, z);
             }
         }
 
         mesh.vertices = vertices;
+        // mesh.normals = normals;
+    }
+
+    private void SetVertex(int i, int x, int y, int z)
+    {
+        Vector3 inner = vertices[i] = new Vector3(x, y, z);
+        normals[i] = (vertices[i] - inner).normalized;
+        vertices[i] = inner + normals[i] * roundness;
     }
 
     private void GenerateTriangles()
@@ -160,15 +171,17 @@ public class RoundedCubeGenerator : MonoBehaviour
         return t;
     }
 
-    // private void OnDrawGizmos()
-    // {
-    //     if (vertices == null) return;
-    //     Gizmos.color = Color.black;
-    //     foreach (Vector3 vertex in vertices)
-    //     {
-    //         Gizmos.DrawSphere(vertex, 0.1f);
-    //     }
-    // }
+    private void OnDrawGizmos()
+    {
+        if (vertices == null) return;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Gizmos.color = Color.black;
+            Gizmos.DrawSphere(vertices[i], 0.05f);
+            // Gizmos.color = Color.yellow;
+            // Gizmos.DrawRay(vertices[i], normals[i]);
+        }
+    }
 
     private static int SetQuad(int[] triangles, int i, int v00, int v10, int v01, int v11)
     {
