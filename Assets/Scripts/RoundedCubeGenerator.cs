@@ -5,8 +5,10 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class RoundedCubeGenerator : MonoBehaviour
 {
-    public int xSize, ySize, zSize;
-    public int roundness;
+    public int xSize { get; set; }
+    public int ySize { get; set; }
+    public int zSize { get; set; }
+    public int roundness { get; set; }
     private Vector3[] vertices;
     private Vector3[] normals;
     private Color32[] cubeUV;
@@ -15,18 +17,20 @@ public class RoundedCubeGenerator : MonoBehaviour
     // private int[] triangles;
     private Mesh mesh;
 
-    void Awake()
-    {
-        Generate();
-    }
+    // void Awake()
+    // {
+    //     Generate();
+    // }
 
-    private void Generate()
+    public void Generate()
     {
         GetComponent<MeshFilter>().mesh = mesh = new Mesh();
         mesh.name = "Procedural Grid";
 
         GenerateVertices();
         GenerateTriangles();
+        GenerateColliders();
+        gameObject.AddComponent<Rigidbody>();
     }
 
     private void GenerateVertices()
@@ -113,7 +117,7 @@ public class RoundedCubeGenerator : MonoBehaviour
 
     private void GenerateTriangles()
     {
-        int quads = (xSize * ySize + xSize * zSize + ySize * zSize) * 2;
+        // int quads = (xSize * ySize + xSize * zSize + ySize * zSize) * 2;
         int[] trianglesZ = new int[(xSize * ySize) * 12];
         int[] trianglesX = new int[(ySize * zSize) * 12];
         int[] trianglesY = new int[(xSize * zSize) * 12];
@@ -219,18 +223,6 @@ public class RoundedCubeGenerator : MonoBehaviour
         return t;
     }
 
-    private void OnDrawGizmos()
-    {
-        if (vertices == null) return;
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            Gizmos.color = Color.black;
-            Gizmos.DrawSphere(vertices[i], 0.05f);
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawRay(vertices[i], normals[i]);
-        }
-    }
-
     private static int SetQuad(int[] triangles, int i, int v00, int v10, int v01, int v11)
     {
         triangles[i] = v00;
@@ -238,5 +230,46 @@ public class RoundedCubeGenerator : MonoBehaviour
         triangles[i + 2] = triangles[i + 3] = v10;
         triangles[i + 5] = v11;
         return i + 6;
+    }
+
+    private void GenerateColliders()
+    {
+        AddBoxCollider(xSize, ySize - roundness * 2, zSize - roundness * 2);
+        AddBoxCollider(xSize - roundness * 2, ySize, zSize - roundness * 2);
+        AddBoxCollider(xSize - roundness * 2, ySize - roundness * 2, zSize);
+
+        Vector3 min = Vector3.one * roundness;
+        Vector3 half = new Vector3(xSize, ySize, zSize) * 0.5f;
+        Vector3 max = new Vector3(xSize, ySize, zSize) - min;
+
+        AddCapsuleCollider(0, half.x, min.y, min.z);
+        AddCapsuleCollider(0, half.x, min.y, max.z);
+        AddCapsuleCollider(0, half.x, max.y, min.z);
+        AddCapsuleCollider(0, half.x, max.y, max.z);
+
+        AddCapsuleCollider(1, min.x, half.y, min.z);
+        AddCapsuleCollider(1, min.x, half.y, max.z);
+        AddCapsuleCollider(1, max.x, half.y, min.z);
+        AddCapsuleCollider(1, max.x, half.y, max.z);
+
+        AddCapsuleCollider(2, min.x, min.y, half.z);
+        AddCapsuleCollider(2, min.x, max.y, half.z);
+        AddCapsuleCollider(2, max.x, min.y, half.z);
+        AddCapsuleCollider(2, max.x, max.y, half.z);
+    }
+
+    private void AddBoxCollider(float x, float y, float z)
+    {
+        BoxCollider c = gameObject.AddComponent<BoxCollider>();
+        c.size = new Vector3(x, y, z);
+    }
+
+    private void AddCapsuleCollider(int direction, float x, float y, float z)
+    {
+        CapsuleCollider c = gameObject.AddComponent<CapsuleCollider>();
+        c.center = new Vector3(x, y, z);
+        c.direction = direction;
+        c.radius = roundness;
+        c.height = c.center[direction] * 2f;
     }
 }
