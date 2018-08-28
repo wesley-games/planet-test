@@ -12,20 +12,12 @@ public class RoundedCubeGenerator : MonoBehaviour
     private Vector3[] vertices;
     private Vector3[] normals;
     private Color32[] cubeUV;
-    // private Vector2[] uvs;
-    // private Vector4[] tangents;
-    // private int[] triangles;
     private Mesh mesh;
-
-    // void Awake()
-    // {
-    //     Generate();
-    // }
 
     public void Generate()
     {
         GetComponent<MeshFilter>().mesh = mesh = new Mesh();
-        mesh.name = "Procedural Grid";
+        mesh.name = "Procedural Cube";
 
         GenerateVertices();
         GenerateTriangles();
