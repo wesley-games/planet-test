@@ -53,7 +53,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\ColourSettings.cs" />
      <Compile Include="Assets\Scripts\Planet.cs" />
+     <Compile Include="Assets\Scripts\ShapeGenerator.cs" />
+     <Compile Include="Assets\Scripts\ShapeSettings.cs" />
      <Compile Include="Assets\Scripts\TerrainFace.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>C:/Users/wesle/Documents/UnityProjects/planet-test/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
